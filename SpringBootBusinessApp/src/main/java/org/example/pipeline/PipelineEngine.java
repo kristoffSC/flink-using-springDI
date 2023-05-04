@@ -2,6 +2,7 @@ package org.example.pipeline;
 
 import org.example.model.SessionizeOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,9 @@ public class PipelineEngine {
     private final OrderProcessor<SessionizeOrder> processor;
 
     @Autowired
-    public PipelineEngine(MessagingSystem messagingsystem, OrderProcessor<SessionizeOrder> processor) {
+    public PipelineEngine(
+            MessagingSystem messagingsystem,
+            @Qualifier("businessOrderProcessor") OrderProcessor<SessionizeOrder> processor) {
         this.messagingsystem = messagingsystem;
         this.processor = processor;
     }

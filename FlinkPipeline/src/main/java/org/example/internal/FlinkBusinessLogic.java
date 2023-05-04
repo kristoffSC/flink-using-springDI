@@ -8,10 +8,12 @@ import org.example.model.Order;
 import org.example.model.SessionizeOrder;
 import org.example.processor.OrderProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 public class FlinkBusinessLogic extends ProcessFunction<Order, SessionizeOrder> {
 
     @Autowired
+    @Qualifier("businessOrderProcessor")
     private OrderProcessor<SessionizeOrder> orderProcessor;
 
     @Override
