@@ -59,7 +59,7 @@ public class DataStreamJob {
 
 	public static void main(String[] args) throws Exception {
 		// Add Job argument to System arguments, so we can tell Spring via job arguments which bean
-		// should be load using via @ConditionalOnProperty
+		// should be loaded. This is done by @ConditionalOnProperty
 		ParameterTool parameterTool = ParameterTool.fromArgs(args);
 		Properties argProperties = parameterTool.getProperties();
 		System.getProperties().putAll(argProperties);
@@ -72,14 +72,14 @@ public class DataStreamJob {
 	private void run(ParameterTool parameterTool) throws Exception {
 		StreamExecutionEnvironment env = createStreamEnv();
 		env.getConfig().setGlobalJobParameters(parameterTool);
-		env.addSource(new CheckpointCountingSource<>(5, 5, eventProducer))
+		env.addSource(new CheckpointCountingSource<>(10, 20, eventProducer))
 			.setParallelism(1)
 			.process(businessLogic)
 			.setParallelism(2)
 			.addSink(sink)
 			.setParallelism(2);
 
-		env.execute("Flink Job  Powered By Spring DI.");
+		env.execute("Flink Job Powered By Spring DI.");
 	}
 
 	private static StreamExecutionEnvironment createStreamEnv() {
