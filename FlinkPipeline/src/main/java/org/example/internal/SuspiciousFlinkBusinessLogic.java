@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-public class FlinkBusinessLogic extends ProcessFunction<Order, SessionizeOrder> {
+public class SuspiciousFlinkBusinessLogic extends ProcessFunction<Order, SessionizeOrder> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlinkBusinessLogic.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SuspiciousFlinkBusinessLogic.class);
 
     @Autowired
     @Qualifier("businessOrderProcessor")
@@ -23,7 +23,7 @@ public class FlinkBusinessLogic extends ProcessFunction<Order, SessionizeOrder> 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-        LOGGER.info("Using logic - FlinkBusinessLogic.");
+        LOGGER.info("Using logic - SuspiciousFlinkBusinessLogic.");
         System.getProperties().putAll(
             getRuntimeContext().getExecutionConfig().getGlobalJobParameters().toMap()
         );
@@ -33,6 +33,18 @@ public class FlinkBusinessLogic extends ProcessFunction<Order, SessionizeOrder> 
     @Override
     public void processElement(Order value, Context ctx, Collector<SessionizeOrder> out) throws Exception {
         SessionizeOrder newOrder = orderProcessor.process(value);
+        suspiciousSleep();
         out.collect(newOrder);
+    }
+
+    private void suspiciousSleep() {
+        try {
+            int counter = 100;
+            while (counter-- > 0) {
+                Thread.sleep(100);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

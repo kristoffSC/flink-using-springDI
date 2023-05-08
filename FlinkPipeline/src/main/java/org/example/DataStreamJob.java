@@ -19,10 +19,13 @@
 package org.example;
 
 import com.getindata.fink.spring.context.ContextRegistry;
+import java.util.Properties;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.example.internal.CheckpointCountingSource;
 import org.example.internal.CheckpointCountingSource.EventProducer;
@@ -51,17 +54,27 @@ public class DataStreamJob {
 	@Autowired
 	private SinkFunction<SessionizeOrder> sink;
 
+	@Autowired
+	private ProcessFunction<Order, SessionizeOrder> businessLogic;
+
 	public static void main(String[] args) throws Exception {
+		// Add Job argument to System arguments, so we can tell Spring via job arguments which bean
+		// should be load using via @ConditionalOnProperty
+		ParameterTool parameterTool = ParameterTool.fromArgs(args);
+		Properties argProperties = parameterTool.getProperties();
+		System.getProperties().putAll(argProperties);
+
 		new ContextRegistry()
 			.autowiredBean(new DataStreamJob(), "org.example.config")
-			.run(args);
+			.run(parameterTool);
 	}
 
-	private void run(String[] args) throws Exception {
+	private void run(ParameterTool parameterTool) throws Exception {
 		StreamExecutionEnvironment env = createStreamEnv();
+		env.getConfig().setGlobalJobParameters(parameterTool);
 		env.addSource(new CheckpointCountingSource<>(5, 5, eventProducer))
 			.setParallelism(1)
-			.process(new FlinkBusinessLogic())
+			.process(businessLogic)
 			.setParallelism(2)
 			.addSink(sink)
 			.setParallelism(2);
